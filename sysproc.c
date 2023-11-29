@@ -7,6 +7,25 @@
 #include "mmu.h"
 #include "proc.h"
 
+
+int
+sys_ssualloc(void) {
+    int size;
+    if(argint(0, &size) < 0)
+        return -1;
+    return ssualloc(size);
+}
+
+int
+sys_getvp(void) {
+    return getvp();
+}
+
+int
+sys_getpp(void) {
+    return getpp();
+}
+
 int
 sys_fork(void)
 {

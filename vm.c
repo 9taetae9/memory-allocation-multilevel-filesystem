@@ -32,7 +32,7 @@ seginit(void)
 // Return the address of the PTE in page table pgdir
 // that corresponds to virtual address va.  If alloc!=0,
 // create any required page table pages.
-static pte_t *
+/*static*/ pte_t *
 walkpgdir(pde_t *pgdir, const void *va, int alloc)
 {
   pde_t *pde;
@@ -53,6 +53,8 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
   }
   return &pgtab[PTX(va)];
 }
+
+walkpgdir_fp_t walkpgdir_fp = walkpgdir;
 
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
@@ -79,6 +81,10 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
   return 0;
 }
 
+// Wrapper function
+int mappages_wrapper(pde_t *pgdir, void *va, uint size, uint pa, int perm) {
+    return mappages(pgdir, va, size, pa, perm);
+}
 // There is one page table per process, plus one that's used when
 // a CPU is not running any process (kpgdir). The kernel uses the
 // current process's page table during system calls and interrupts;
@@ -142,6 +148,8 @@ kvmalloc(void)
 {
   kpgdir = setupkvm();
   switchkvm();
+
+  walkpgdir_fp = walkpgdir;
 }
 
 // Switch h/w page table register to the kernel-only page table,

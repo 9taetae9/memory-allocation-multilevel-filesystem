@@ -1,11 +1,12 @@
+#include "mmu.h"
 #include "types.h"
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
-#include "mmu.h"
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+
 
 struct {
   struct spinlock lock;
@@ -20,10 +21,49 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+
 void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
+}
+
+int ssualloc(int size) {
+    struct proc *curproc = myproc();
+
+    if (size <= 0 || size % PGSIZE != 0) {
+        return -1;
+    }
+
+    // Allocate virtual memory
+    uint new_sz = curproc->sz + size;
+    if (new_sz > curproc->sz) {
+        // Allocate virtual memory but don't map it to physical pages
+        curproc->sz = new_sz;
+
+//	curproc->sz_allocated = curproc->sz;
+
+        return new_sz - size; // Return the start address of allocated memory
+    }
+
+    return -1; 
+}
+
+int getvp(void) {
+    struct proc *curproc = myproc();
+    return curproc->sz / PGSIZE; //Number of virtual pages
+}
+
+int getpp(void) {
+    struct proc *curproc = myproc();
+    int count = 0;
+    for (uint i = 0; i < curproc->sz; i += PGSIZE) {
+        pte_t *pte = walkpgdir_fp(curproc->pgdir, (void *) i, 0);
+        if (pte && (*pte & PTE_P)) {
+            count++;
+        }
+    }
+    return count; // Number of physical pages
 }
 
 // Must be called with interrupts disabled

@@ -46,8 +46,32 @@ trap(struct trapframe *tf)
     return;
   }
 
-  switch(tf->trapno){
-  case T_IRQ0 + IRQ_TIMER:
+  switch(tf->trapno){ 
+	case T_PGFLT:
+    {
+   	struct proc *curproc = myproc();
+     	uint fault_addr = rcr2(); // Get the faulting address from CR2 register
+	if(fault_addr<curproc->sz){
+	     char *mem = kalloc(); // Allocate a physical page
+             if (mem == 0) {
+                 curproc->killed = 1; // Kill the process if out of memory
+             } else {
+                 memset(mem, 0, PGSIZE);
+		 if (mappages_wrapper(curproc->pgdir, (char*)PGROUNDDOWN(fault_addr), PGSIZE, V2P(mem), PTE_W|PTE_U) == 0) {
+                    // Only update sz_allocated when a new page is successfully mapped
+                    curproc->sz_allocated += PGSIZE;
+		    } else {
+                    kfree(mem);
+                    curproc->killed = 1;
+		    }
+                }
+        } else {
+                // Handle as a regular page fault (illegal access)
+                curproc->killed = 1;
+            }
+    }
+    break;
+	case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;

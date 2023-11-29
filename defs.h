@@ -1,3 +1,5 @@
+#include "mmu.h"
+
 struct buf;
 struct context;
 struct file;
@@ -156,6 +158,11 @@ int             fetchint(uint, int*);
 int             fetchstr(uint, char**);
 void            syscall(void);
 
+//sysproc.c
+int ssualloc(int);
+int getvp(void);
+int getpp(void);
+
 // timer.c
 void            timerinit(void);
 
@@ -185,6 +192,9 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
+typedef pte_t *(*walkpgdir_fp_t)(pde_t *pgdir, const void *va, int alloc);
+extern walkpgdir_fp_t walkpgdir_fp;
+int mappages_wrapper(pde_t *pgdir, void *va, uint size, uint pa, int perm);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

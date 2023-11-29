@@ -21,9 +21,14 @@ struct superblock {
   uint bmapstart;    // Block number of first free map block
 };
 
-#define NDIRECT 12
+#define NDIRECT 6
 #define NINDIRECT (BSIZE / sizeof(uint))
-#define MAXFILE (NDIRECT + NINDIRECT)
+#define NNINDIRECT (NINDIRECT * NINDIRECT)
+#define NNNINDIRECT (NINDIRECT * NINDIRECT * NINDIRECT)
+#define NINODEBLOCKS 4 // Number of 1-level indirect blocks
+#define NNINODEBLOCKS 2 // Number of 2-level indirect blocks
+
+#define MAXFILE (NDIRECT + NINODEBLOCKS * NINDIRECT + NNINODEBLOCKS * NNINDIRECT + NNNINDIRECT)
 
 // On-disk inode structure
 struct dinode {
@@ -32,7 +37,7 @@ struct dinode {
   short minor;          // Minor device number (T_DEV only)
   short nlink;          // Number of links to inode in file system
   uint size;            // Size of file (bytes)
-  uint addrs[NDIRECT+1];   // Data block addresses
+  uint addrs[NDIRECT+ NINODEBLOCKS + NNINODEBLOCKS + 1];   // Data block addresses (+1 => +7, since ndriect 11 => 6)
 };
 
 // Inodes per block.

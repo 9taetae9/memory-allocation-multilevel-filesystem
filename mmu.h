@@ -1,6 +1,8 @@
+#ifndef _MMU_H_
+#define _MMU_H_
 // This file contains definitions for the
 // x86 memory management unit (MMU).
-
+#include "types.h"
 // Eflags register
 #define FL_IF           0x00000200      // Interrupt Enable
 
@@ -179,3 +181,4 @@ struct gatedesc {
 }
 
 #endif
+#endif // _MMU_H_
