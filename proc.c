@@ -41,8 +41,6 @@ int ssualloc(int size) {
         // Allocate virtual memory but don't map it to physical pages
         curproc->sz = new_sz;
 
-//	curproc->sz_allocated = curproc->sz;
-
         return new_sz - size; // Return the start address of allocated memory
     }
 
